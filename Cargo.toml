@@ -16,6 +16,11 @@ path = "src/server.rs"
 zmq = "0.10.0"
 prost = "0.11.8"
 egui = "0.21.0"
+log = "0.4.17"
+
+[dependencies.uuid]
+version = "1.3.2"
+features = ["v4"]
 
 [build-dependencies]
 prost-build = "0.11.8"

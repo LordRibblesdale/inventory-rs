@@ -1,19 +1,19 @@
 syntax = "proto3";
 
+message Item {
+  string name = 1;
+  string description = 2;
+  string category = 3;
+  string tag = 4;
+  uint32 quantity = 5;
+}
+
+message StorageBox {
+  repeated StorageBox storage = 1;
+  repeated Item items = 2;
+}
+
 message Database {
-  message StorageBox {
-    message Object {
-      string name = 1;
-      string description = 2;
-      string category = 3;
-      string tag = 4;
-      uint32 quantity = 5;
-    }
-
-    repeated StorageBox storage = 1;
-    repeated Object objects = 2;
-  }
-
   repeated StorageBox storage = 1;
   string name = 2;
   string description = 3;
