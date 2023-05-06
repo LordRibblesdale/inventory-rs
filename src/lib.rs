@@ -1,70 +1,57 @@
+use log::{debug, info};
+use std::path::Path;
+use protobuf::Message;
+
 pub mod storage;
 
-use log::{debug, info, warn};
-use std::io::{BufReader, Read};
-use std::path::Path;
-use storage::Database;
+use storage::database::Database;
 
 impl Database {
-    pub fn new(database_name: String, database_description: Option<String>) -> Database {
+    pub fn create_empty_database(database_name: String, database_description: Option<String>) -> Self {
         info!("Default Database created");
 
-        Database {
-            name: database_name,
-            description: database_description.unwrap_or_default(),
-            storage: vec![],
-        }
+        let mut new_database = Self::new();
+        new_database.name = database_name;
+        new_database.description = database_description.unwrap_or_default();
+
+        new_database
     }
 
-    pub fn load_from_file(file_path: &Path) -> Option<Database> {
+    pub fn load_database_from_file(file_path: &Path) -> Option<Self> {
         info!("Loading from file {}", file_path.display());
 
-        match std::fs::File::open(file_path) {
-            Ok(mut file) => {
-
-                let mut buffer = BufReader::new(file);
-
-                // match Database::decode(buffer) {
-                //     Ok(database) => {
-                //         info!("Database {} loaded!", database.name);
-                //         Some(database)
-                //     }
-                //     Err(decode_error) => {
-                //         warn!(
-                //             "Cannot decode database from file {} due to: {}",
-                //             file_path.display(),
-                //             decode_error
-                //         );
-                //         None
-                //     }
-                // }
-
-                None
+        let binary_data = match std::fs::read(file_path) {
+            Ok(data) => { data }
+            Err(e) => {
+                debug!("{}", e);
+                return None;
             }
-            Err(file_error) => {
-                warn!(
-                    "Cannot open file {} due to: {}",
-                    file_path.display(),
-                    file_error
-                );
+        };
+
+        match Database::parse_from_bytes(&binary_data) {
+            Ok(database) => { Some(database) }
+            Err(e) => {
+                debug!("{}", e);
                 None
             }
         }
     }
 
-    pub fn save_to_file(&self, file_path: &Path) -> bool {
-        // if let Err(err) = std::fs::write(file_path, self.encode_to_vec()) {
-        //     warn!(
-        //         "Cannot save database {} to {} due to: {}",
-        //         self.name,
-        //         file_path.display(),
-        //         err
-        //     );
-        //     return false
-        // }
+    pub fn save_database_to_file(&self, file_path: &Path) -> bool {
+        let binary_data = match self.write_to_bytes() {
+            Ok(data) => { data }
+            Err(e) => {
+                debug!("{}", e);
+                return false;
+            }
+        };
 
-        info!("Database {} saved in {}", self.name, file_path.display());
-        true
+        match std::fs::write(file_path, binary_data) {
+            Ok(_) => { true }
+            Err(e) => {
+                debug!("{}", e);
+                false
+            }
+        }
     }
 }
-

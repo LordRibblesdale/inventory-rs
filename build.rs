@@ -1,11 +1,10 @@
-use std::io::Result;
-
-fn main() -> Result<()> {
+fn main() -> anyhow::Result<()> {
     // println!("cargo:rerun-if-changed=protobuf/database.proto");
 
-    prost_build::Config::new()
+    protobuf_codegen::Codegen::new()
+        .pure()
+        .include("protobuf")
+        .input("protobuf/database.proto")
         .out_dir("src/storage")
-        .default_package_filename("mod")
-        .compile_protos(&["database.proto"], &["protobuf"])?;
-    Ok(())
+        .run()
 }
